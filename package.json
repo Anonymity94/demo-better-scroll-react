@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@better-scroll/core": "^2.0.0-alpha.20",
+    "@better-scroll/observe-dom": "^2.0.0-alpha.20",
+    "@better-scroll/pull-down": "^2.0.0-alpha.20",
+    "@better-scroll/pull-up": "^2.0.0-alpha.20",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1"
   },
   "scripts": {
