@@ -1,10 +1,10 @@
 import React from 'react'
 import loadingImg from './loading.gif'
-import styles from './index.css'
+import './index.less'
 
 function Loading(props) {
   return (
-    <div class={styles.loadingContainer}>
+    <div className="mf-loading-container">
       <img src={loadingImg} alt="加载中..." />
     </div>
   )

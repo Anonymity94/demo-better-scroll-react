@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { PureComponent } from 'react'
 import './App.css'
 import Scroll from './components/Scroll'
 
@@ -13,30 +13,33 @@ function renderData(step = 0) {
 
 let data = renderData()
 
-function App() {
-
-  const handlePullingDown = () => {
-    console.log('ref')
+class App extends PureComponent {
+  handlePullingDown = () => {
     STEP += 10
     setTimeout(() => {
       data = [...renderData(STEP), ...data]
+      this.scrollRef.forceUpdate()
     }, 1000)
   }
-
-  return (
-    <div className="App">
-      {/* Scroll父节点 一定要指定一个高度，否则无法滚动 */}
-      <div className="box">
-        <Scroll onPullingDown={() => handlePullingDown()} >
-          <div>
-            {data.map(item => (
-              <div key={item}>{item}</div>
-            ))}
-          </div>
-        </Scroll>
+  render() {
+    return (
+      <div className="App">
+        {/* Scroll父节点 一定要指定一个高度，否则无法滚动 */}
+        <div className="box">
+          <Scroll
+            onRef={scroll => (this.scrollRef = scroll)}
+            onPullingDown={() => this.handlePullingDown()}
+          >
+            <div>
+              {data.map(item => (
+                <div key={item}>{item}</div>
+              ))}
+            </div>
+          </Scroll>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default App
