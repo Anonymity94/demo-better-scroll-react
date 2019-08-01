@@ -1,10 +1,11 @@
-import React, { PureComponent, Fragment, memo } from 'react'
+import React, { PureComponent, memo } from 'react'
 import PropTypes from 'prop-types'
 import BScroll from '@better-scroll/core'
 import PullDown from '@better-scroll/pull-down'
 import Pullup from '@better-scroll/pull-up'
-import Loading from '../Loading'
 import ObserveDom from '@better-scroll/observe-dom'
+import Loading from '../Loading'
+import Bubble from '../Bubble'
 import './index.less'
 
 BScroll.use(ObserveDom)
@@ -14,27 +15,22 @@ BScroll.use(PullDown)
 const pullDownInitTop = -50
 
 const PullDownDom = memo(
-  ({
-    pullDownRefresh,
-    pullDownStyle,
-    beforePullDown,
-    isPullingDown,
-    bubbleY
-  }) => {
+  ({ pullDownRefresh, beforePullDown, isPullingDown, bubbleY }) => {
     if (!pullDownRefresh) return ''
     if (beforePullDown) {
       return (
         <div className="before-trigger">
-          {/* <bubble :y="bubbleY"></bubble> */}
-          下拉刷新
+          <Bubble y={bubbleY} />
         </div>
       )
     }
     if (isPullingDown) {
       return (
+        // <div className="after-trigger">
         <div className="loading">
           <Loading />
         </div>
+        // </div>
       )
     }
 
@@ -51,6 +47,7 @@ class Scroll extends PureComponent {
     super(props)
 
     this.scrollViewRef = React.createRef()
+    this.contentRef = React.createRef()
 
     this.state = {
       beforePullDown: true,
@@ -58,7 +55,7 @@ class Scroll extends PureComponent {
       isPullingDown: false,
       isPullUpLoad: false,
       pullUpDirty: true,
-      pullDownStyle: '',
+      pullDownStyle: {},
       bubbleY: 0
     }
   }
@@ -71,6 +68,27 @@ class Scroll extends PureComponent {
   // }
 
   componentDidMount() {
+    this.props.onRef(this)
+    this.initScroll()
+  }
+
+  componentWillUnmount() {
+    this.bscroll.off('scroll')
+    this.bscroll = null
+  }
+
+  initScroll = () => {
+    if (!this.scrollViewRef.current) {
+      return
+    }
+
+    const { pullDownRefresh, pullUpLoad } = this.props
+
+    if (this.contentRef.current && (pullDownRefresh || pullUpLoad)) {
+      this.contentRef.current.style.minHeight = `${this.scrollViewRef.current
+        .offsetHeight + 1}px`
+    }
+
     if (!this.bscroll) {
       this.bscroll = new BScroll(this.scrollViewRef.current, {
         probeType: 3,
@@ -80,7 +98,7 @@ class Scroll extends PureComponent {
         scrollY: this.props.scrollY,
 
         // 下拉刷新
-        pullDownRefresh: this.props.pullDownRefresh
+        pullDownRefresh: pullDownRefresh
       })
 
       // 返回坐标
@@ -100,12 +118,6 @@ class Scroll extends PureComponent {
         this._initPullDownRefresh()
       }
     }
-    this.props.onRef(this)
-  }
-
-  componentWillUnmount() {
-    this.bscroll.off('scroll')
-    this.bscroll = null
   }
 
   scrollHandler(pos) {
@@ -151,23 +163,29 @@ class Scroll extends PureComponent {
         return
       }
       let bubbleY = 0
-      let pullDownStyle = ''
+      let pullDownStyle = {}
 
       if (beforePullDown) {
         bubbleY = Math.max(0, pos.y + pullDownInitTop)
-        pullDownStyle = `top:${Math.min(pos.y + pullDownInitTop, 10)}px`
+        pullDownStyle = { top: `${Math.min(pos.y + pullDownInitTop, 10)}px` }
       } else {
         bubbleY = 0
       }
 
       if (isRebounding) {
-        pullDownStyle = `top:${10 - (pullDownRefresh.stop - pos.y)}px`
+        pullDownStyle = { top: `${10 - (pullDownRefresh.stop - pos.y)}px` }
       }
 
-      this.setState({
-        bubbleY,
-        pullDownStyle
-      })
+      if (Object.keys(pullDownStyle).length > 0) {
+        this.setState({
+          bubbleY,
+          pullDownStyle
+        })
+      } else {
+        this.setState({
+          bubbleY
+        })
+      }
     })
   }
 
@@ -188,7 +206,7 @@ class Scroll extends PureComponent {
   _afterPullDown() {
     setTimeout(() => {
       this.setState({
-        pullDownStyle: `top:${pullDownInitTop}px`,
+        pullDownStyle: { top: `${pullDownInitTop}px` },
         beforePullDown: true,
         isRebounding: false
       })
@@ -208,19 +226,18 @@ class Scroll extends PureComponent {
 
     return (
       <div className="scroll-wrapper" ref={this.scrollViewRef}>
-        <div className="scroll-content">
-          <div className="pulldown-wrapper">
-            <PullDownDom
-              pullDownRefresh={pullDownRefresh}
-              pullDownStyle={pullDownStyle}
-              beforePullDown={beforePullDown}
-              isPullingDown={isPullingDown}
-              bubbleY={bubbleY}
-            />
-          </div>
+        <div className="scroll-content" ref={this.contentRef}>
           <div className="content-wrapper">
             <div>{this.props.children}</div>
           </div>
+        </div>
+        <div className="pulldown-wrapper" style={pullDownStyle}>
+          <PullDownDom
+            pullDownRefresh={pullDownRefresh}
+            beforePullDown={beforePullDown}
+            isPullingDown={isPullingDown}
+            bubbleY={bubbleY}
+          />
         </div>
       </div>
     )

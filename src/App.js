@@ -5,19 +5,21 @@ import Scroll from './components/Scroll'
 let STEP = 0
 
 function renderData(step = 0) {
-  const arr = Array.apply(null, { length: 100 + step }).map(
-    (...args) => args[1]
-  )
+  const arr = Array.apply(null, { length: 10 + step }).map((...args) => args[1])
   return arr.sort(() => Math.random() - 0.5)
 }
 
-let data = renderData()
-
 class App extends PureComponent {
+  state = {
+    data: renderData()
+  }
+
   handlePullingDown = () => {
     STEP += 10
     setTimeout(() => {
-      data = [...renderData(STEP), ...data]
+      this.setState(({ data }) => ({
+        data: [...renderData(STEP), ...data]
+      }))
       this.scrollRef.forceUpdate()
     }, 1000)
   }
@@ -31,8 +33,10 @@ class App extends PureComponent {
             onPullingDown={() => this.handlePullingDown()}
           >
             <div>
-              {data.map(item => (
-                <div key={item}>{item}</div>
+              {this.state.data.map(item => (
+                <div style={{ height: 60, lineHeight: '60px' }} key={item}>
+                  I am : {item}
+                </div>
               ))}
             </div>
           </Scroll>
