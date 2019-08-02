@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/better-scroll-react-demo/static/css/main.732ba5db.chunk.css",
+    "main.js": "/better-scroll-react-demo/static/js/main.a6d6f698.chunk.js",
+    "main.js.map": "/better-scroll-react-demo/static/js/main.a6d6f698.chunk.js.map",
+    "runtime~main.js": "/better-scroll-react-demo/static/js/runtime~main.0f23d9aa.js",
+    "runtime~main.js.map": "/better-scroll-react-demo/static/js/runtime~main.0f23d9aa.js.map",
+    "static/js/2.9245a0ca.chunk.js": "/better-scroll-react-demo/static/js/2.9245a0ca.chunk.js",
+    "static/js/2.9245a0ca.chunk.js.map": "/better-scroll-react-demo/static/js/2.9245a0ca.chunk.js.map",
+    "index.html": "/better-scroll-react-demo/index.html",
+    "precache-manifest.0c48feb5688698064e614d6ef6949f00.js": "/better-scroll-react-demo/precache-manifest.0c48feb5688698064e614d6ef6949f00.js",
+    "service-worker.js": "/better-scroll-react-demo/service-worker.js",
+    "static/css/main.732ba5db.chunk.css.map": "/better-scroll-react-demo/static/css/main.732ba5db.chunk.css.map",
+    "static/media/App.less": "/better-scroll-react-demo/static/media/iframe_iphonex.8ea9318b.png"
+  }
+}
