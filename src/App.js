@@ -15,6 +15,21 @@ class App extends PureComponent {
       this.scrollRef.forceUpdate()
     }, 1000)
   }
+
+  handlePullingUp = () => {
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        this.setState(({ data }) => ({
+          data: [...data, `I am load new data:${+new Date()}`]
+        }))
+        this.scrollRef.forceUpdate(true)
+      } else {
+        // 如果没有新数据
+        this.scrollRef.forceUpdate()
+      }
+    }, 1500)
+  }
+
   render() {
     return (
       <div className="App">
@@ -24,6 +39,7 @@ class App extends PureComponent {
             <Scroll
               onRef={scroll => (this.scrollRef = scroll)}
               onPullingDown={() => this.handlePullingDown()}
+              onPullingUp={() => this.handlePullingUp()}
             >
               <div>
                 {this.state.data.map(item => (

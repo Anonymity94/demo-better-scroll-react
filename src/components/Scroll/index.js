@@ -10,37 +10,68 @@ import './index.less'
 
 BScroll.use(ObserveDom)
 BScroll.use(PullDown)
-// BScroll.use(Pullup)
+BScroll.use(Pullup)
 
 const pullDownInitTop = -50
 
 const PullDownDom = memo(
-  ({ pullDownRefresh, beforePullDown, isPullingDown, bubbleY }) => {
+  ({
+    pullDownRefresh,
+    beforePullDown,
+    isPullingDown,
+    bubbleY,
+    pullDownStyle
+  }) => {
     if (!pullDownRefresh) return ''
+
+    let dom = ''
     if (beforePullDown) {
-      return (
+      dom = (
         <div className="before-trigger">
           <Bubble y={bubbleY} />
         </div>
       )
-    }
-    if (isPullingDown) {
-      return (
-        // <div className="after-trigger">
+    } else if (isPullingDown) {
+      dom = (
         <div className="loading">
           <Loading />
         </div>
-        // </div>
+      )
+    } else {
+      dom = (
+        <div>
+          <span>刷新成功</span>
+        </div>
       )
     }
 
     return (
-      <div>
-        <span>刷新成功</span>
+      <div className="pulldown-wrapper" style={pullDownStyle}>
+        {dom}
       </div>
     )
   }
 )
+
+const PullUpDom = memo(({ pullUpLoad, isPullUpLoad, pullUpTxt }) => {
+  if (!pullUpLoad) return ''
+
+  let dom = ''
+  if (isPullUpLoad) {
+    dom = (
+      <div className="after-trigger">
+        <Loading />
+      </div>
+    )
+  } else {
+    dom = (
+      <div className="before-trigger">
+        <span>{pullUpTxt}</span>
+      </div>
+    )
+  }
+  return <div className="pullup-wrapper">{dom}</div>
+})
 
 class Scroll extends PureComponent {
   constructor(props) {
@@ -53,10 +84,11 @@ class Scroll extends PureComponent {
       beforePullDown: true,
       isRebounding: false,
       isPullingDown: false,
-      isPullUpLoad: false,
-      pullUpDirty: true,
       pullDownStyle: {},
-      bubbleY: 0
+      bubbleY: 0,
+
+      isPullUpLoad: false,
+      pullUpDirty: true
     }
   }
 
@@ -98,7 +130,9 @@ class Scroll extends PureComponent {
         scrollY: this.props.scrollY,
 
         // 下拉刷新
-        pullDownRefresh: pullDownRefresh
+        pullDownRefresh,
+        // 上拉加载
+        pullUpLoad
       })
 
       // 返回坐标
@@ -117,16 +151,24 @@ class Scroll extends PureComponent {
       ) {
         this._initPullDownRefresh()
       }
+
+      if (
+        this.props.scrollY &&
+        this.props.pullUpLoad &&
+        this.props.onPullingUp
+      ) {
+        this._initPullUpLoad()
+      }
     }
   }
 
-  scrollHandler(pos) {
+  scrollHandler = pos => {
     // console.log(pos.y)
   }
 
-  forceUpdate(dirty) {
-    const { isPullingDown } = this.state
-    const { pullDownRefresh } = this.props
+  forceUpdate = dirty => {
+    const { isPullingDown, isPullUpLoad } = this.state
+    const { pullDownRefresh, pullUpLoad } = this.props
     if (pullDownRefresh && isPullingDown) {
       this.setState({
         isPullingDown: false
@@ -134,19 +176,19 @@ class Scroll extends PureComponent {
       this._reboundPullDown().then(() => {
         this._afterPullDown()
       })
-    }
-    // else if (this.pullUpLoad && this.isPullUpLoad) {
-    //   this.isPullUpLoad = false
-    //   this.scroll.finishPullUp()
-    //   this.pullUpDirty = dirty
-    //   this.refresh()
-    // }
-    else {
+    } else if (pullUpLoad && isPullUpLoad) {
+      this.setState({
+        isPullUpLoad: false,
+        pullUpDirty: dirty
+      })
+      this.bscroll.finishPullUp()
+      this.refresh()
+    } else {
       this.refresh()
     }
   }
 
-  _initPullDownRefresh() {
+  _initPullDownRefresh = () => {
     const { onPullingDown, pullDownRefresh } = this.props
 
     this.bscroll.on('pullingDown', () => {
@@ -189,7 +231,17 @@ class Scroll extends PureComponent {
     })
   }
 
-  _reboundPullDown() {
+  _initPullUpLoad = () => {
+    const { onPullingUp } = this.props
+    this.bscroll.on('pullingUp', () => {
+      this.setState({
+        isPullUpLoad: true
+      })
+      onPullingUp()
+    })
+  }
+
+  _reboundPullDown = () => {
     const { pullDownRefresh } = this.props
     const { stopTime = 600 } = pullDownRefresh
     return new Promise(resolve => {
@@ -203,7 +255,7 @@ class Scroll extends PureComponent {
     })
   }
 
-  _afterPullDown() {
+  _afterPullDown = () => {
     setTimeout(() => {
       this.setState({
         pullDownStyle: { top: `${pullDownInitTop}px` },
@@ -214,31 +266,40 @@ class Scroll extends PureComponent {
     }, this.bscroll.options.bounceTime)
   }
 
-  refresh() {
+  refresh = () => {
     if (this.bscroll) {
       this.bscroll.refresh()
     }
   }
 
   render() {
+    // 下拉刷新
     const { pullDownRefresh } = this.props
     const { pullDownStyle, bubbleY, beforePullDown, isPullingDown } = this.state
 
+    // 上拉加载
+    const { pullUpLoad, pullUpLoadMoreTxt, pullUpLoadNoMoreTxt } = this.props
+    const { isPullUpLoad, pullUpDirty } = this.state
+
     return (
       <div className="scroll-wrapper" ref={this.scrollViewRef}>
-        <div className="scroll-content" ref={this.contentRef}>
-          <div className="content-wrapper">
+        <div className="scroll-content">
+          <div className="content-wrapper" ref={this.contentRef}>
             <div>{this.props.children}</div>
           </div>
-        </div>
-        <div className="pulldown-wrapper" style={pullDownStyle}>
-          <PullDownDom
-            pullDownRefresh={pullDownRefresh}
-            beforePullDown={beforePullDown}
-            isPullingDown={isPullingDown}
-            bubbleY={bubbleY}
+          <PullUpDom
+            pullUpLoad={pullUpLoad}
+            isPullUpLoad={isPullUpLoad}
+            pullUpTxt={pullUpDirty ? pullUpLoadMoreTxt : pullUpLoadNoMoreTxt}
           />
         </div>
+        <PullDownDom
+          pullDownStyle={pullDownStyle}
+          pullDownRefresh={pullDownRefresh}
+          beforePullDown={beforePullDown}
+          isPullingDown={isPullingDown}
+          bubbleY={bubbleY}
+        />
       </div>
     )
   }
@@ -254,7 +315,11 @@ Scroll.defaultProps = {
   pullDownRefresh: {
     threshold: 90,
     stop: 40
-  }
+  },
+
+  pullUpLoad: true,
+  pullUpLoadMoreTxt: '上拉加载',
+  pullUpLoadNoMoreTxt: '没有更多数据了'
 }
 
 Scroll.propTypes = {
@@ -274,7 +339,12 @@ Scroll.propTypes = {
       stop: PropTypes.number
     })
   ]),
-  onPullingDown: PropTypes.func
+  onPullingDown: PropTypes.func,
+
+  // 上拉加载
+  pullUpLoad: PropTypes.bool,
+  pullUpLoadMoreTxt: PropTypes.string,
+  pullUpLoadNoMoreTxt: PropTypes.string
 }
 
 export default Scroll
