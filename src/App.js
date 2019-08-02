@@ -1,24 +1,16 @@
 import React, { PureComponent } from 'react'
-import './App.css'
 import Scroll from './components/Scroll'
-
-let STEP = 0
-
-function renderData(step = 0) {
-  const arr = Array.apply(null, { length: 10 + step }).map((...args) => args[1])
-  return arr.sort(() => Math.random() - 0.5)
-}
+import './App.less'
 
 class App extends PureComponent {
   state = {
-    data: renderData()
+    data: new Array(5).fill(0).map((item, index) => `I am the No.${index}`)
   }
 
   handlePullingDown = () => {
-    STEP += 10
     setTimeout(() => {
       this.setState(({ data }) => ({
-        data: [...renderData(STEP), ...data]
+        data: [`I am new data:${+new Date()}`, ...data]
       }))
       this.scrollRef.forceUpdate()
     }, 1000)
@@ -26,20 +18,23 @@ class App extends PureComponent {
   render() {
     return (
       <div className="App">
-        {/* Scroll父节点 一定要指定一个高度，否则无法滚动 */}
-        <div className="box">
-          <Scroll
-            onRef={scroll => (this.scrollRef = scroll)}
-            onPullingDown={() => this.handlePullingDown()}
-          >
-            <div>
-              {this.state.data.map(item => (
-                <div style={{ height: 60, lineHeight: '60px' }} key={item}>
-                  I am : {item}
-                </div>
-              ))}
-            </div>
-          </Scroll>
+        <div className="demo">
+          {/* Scroll父节点 一定要指定一个高度，否则无法滚动 */}
+          <div className="box">
+            <Scroll
+              onRef={scroll => (this.scrollRef = scroll)}
+              onPullingDown={() => this.handlePullingDown()}
+            >
+              <div>
+                {this.state.data.map(item => (
+                  <div style={{ height: 60, lineHeight: '60px' }} key={item}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </Scroll>
+          </div>
+          <div className="iphone-frame" />
         </div>
       </div>
     )

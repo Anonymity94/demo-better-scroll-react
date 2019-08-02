@@ -7,8 +7,10 @@ npm i
 npm run start
 ```
 
+### Online demo
+[Demo](https://anonymity94.github.io/better-scroll-react-demo/)
 
-### todo
+### Todo
 - [x] 下拉刷新
 - [ ] 上拉加载
 

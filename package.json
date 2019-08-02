@@ -68,7 +68,9 @@
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js"
+    "test": "node scripts/test.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -134,5 +136,9 @@
     "presets": [
       "react-app"
     ]
+  },
+  "homepage": "https://anonymity94.github.io/better-scroll-react-demo/",
+  "devDependencies": {
+    "gh-pages": "^2.0.1"
   }
 }
